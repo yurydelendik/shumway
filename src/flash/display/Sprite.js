@@ -74,6 +74,9 @@ var SpriteDefinition = (function () {
       if (cmd.hasRatio) {
         props.ratio = cmd.ratio / 0xffff;
       }
+      if (cmd.hasFilters) {
+        props.filters = cmd.filters;
+      }
       if (cmd.blend) {
         props.blendMode = cmd.blendMode;
       }
