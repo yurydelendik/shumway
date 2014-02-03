@@ -1042,6 +1042,58 @@ var DisplayObjectDefinition = (function () {
       return this._getTransformedRect(b, targetCoordSpace);
     },
 
+    _getFilterRegion: function getFilterRegion(targetCoordSpace) {
+      var b;
+
+      var xMin = Number.MAX_VALUE;
+      var xMax = Number.MIN_VALUE;
+      var yMin = Number.MAX_VALUE;
+      var yMax = Number.MIN_VALUE;
+
+      if (this._graphics) {
+        b = this._graphics._getBounds(true);
+        if (b) {
+          xMin = b.xMin;
+          xMax = b.xMax;
+          yMin = b.yMin;
+          yMax = b.yMax;
+        }
+      }
+
+      var children = this._children;
+      for (var i = 0; i < children.length; i++) {
+        var child = children[i];
+        b = children[i]._getFilterRegion(this);
+        if (b.xMin < xMin) {
+          xMin = b.xMin;
+        }
+        if (b.xMax > xMax) {
+          xMax = b.xMax;
+        }
+        if (b.yMin < yMin) {
+          yMin = b.yMin;
+        }
+        if (b.yMax > yMax) {
+          yMax = b.yMax;
+        }
+      }
+
+      if (xMin === Number.MAX_VALUE) {
+        return { xMin: 0, xMax: 0, yMin: 0, yMax: 0 };
+      }
+
+      b = { xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax };
+
+      var filters = this._filters;
+      if (filters && filters.length) {
+        for (var i = 0; i < filters.length; i++) {
+          filters[i]._updateFilterBounds(b);
+        }
+      }
+
+      return this._getTransformedRect(b, targetCoordSpace);
+    },
+
     getBounds: function (targetCoordSpace) {
       return this._getTransformedRect(this._getContentBounds(),
                                       targetCoordSpace);

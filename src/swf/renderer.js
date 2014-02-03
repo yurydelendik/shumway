@@ -36,7 +36,7 @@ var enableAdvanceFrame = rendererOptions.register(new Option("", "advanceFrame",
 
 var CanvasCache = {
   cache: [],
-  getCanvas: function getCanvas(protoCanvas) {
+  getCanvas: function getCanvas(w, h) {
     var tempCanvas = this.cache.shift();
     if (!tempCanvas) {
       tempCanvas = {
@@ -44,8 +44,8 @@ var CanvasCache = {
       };
       tempCanvas.ctx = tempCanvas.canvas.getContext('2d');
     }
-    tempCanvas.canvas.width = protoCanvas.width;
-    tempCanvas.canvas.height = protoCanvas.height;
+    tempCanvas.canvas.width = w;
+    tempCanvas.canvas.height = h;
     tempCanvas.ctx.save();
     return tempCanvas;
   },
@@ -241,6 +241,13 @@ RenderVisitor.prototype = {
 
     var clippingMask = (parentHasClippingMask === true);
 
+    var filterInfo;
+
+    if (child._filters.length > 0) {
+      filterInfo = this.filterStart(child);
+      ctx = this.ctx = filterInfo.temp.ctx;
+    }
+
     if (child._cxform) {
       context.colorTransform = parentColorTransform.applyCXForm(child._cxform);
     }
@@ -342,6 +349,12 @@ RenderVisitor.prototype = {
     if (clippingMask) {
       ctx.fill();
     }
+
+    if (filterInfo) {
+      this.filterEnd(filterInfo);
+      ctx = this.ctx = filterInfo.ctx;
+    }
+
     context.isClippingMask = parentHasClippingMask;
     context.colorTransform = parentColorTransform;
   },
@@ -354,10 +367,10 @@ RenderVisitor.prototype = {
     // TODO create canvas small enough to fit the object and
     // TODO cache the results when cacheAsBitmap is set
 
-    var mask = CanvasCache.getCanvas(this.ctx.canvas);
+    var mask = CanvasCache.getCanvas(this.ctx.canvas.width, this.ctx.canvas.height);
     mask.ctx.setTransform(m.a, m.b, m.c, m.d, tx, ty);
 
-    var maskee = CanvasCache.getCanvas(this.ctx.canvas);
+    var maskee = CanvasCache.getCanvas(this.ctx.canvas.width, this.ctx.canvas.height);
     maskee.ctx.setTransform(m.a, m.b, m.c, m.d, tx, ty);
 
     var clipInfo = {
@@ -385,6 +398,76 @@ RenderVisitor.prototype = {
 
     CanvasCache.releaseCanvas(mask);
     CanvasCache.releaseCanvas(maskee);
+  },
+
+  filterStart: function(child) {
+    //console.log("###### filter in: " + child._name);
+
+    var region = child._getFilterRegion(child._parent);
+    var w = (region.xMax - region.xMin) / 20;
+    var h = (region.yMax - region.yMin) / 20;
+    //console.log("### region:", region.xMin/20, region.xMax/20, region.yMin/20, region.yMax/20);
+
+    var bounds = child.getBounds(child._parent);
+    //console.log("### bounds:", bounds.xMin/20, bounds.xMax/20, bounds.yMin/20, bounds.yMax/20);
+    //console.log("### currentTransform:", child._currentTransform);
+    //console.log("### concatTransform:", child._parent._getConcatenatedTransform(null, true))
+    //console.log("### w/h:", w, h);
+
+    var m = child._parent._getConcatenatedTransform(null, true);
+    var tx = (m.tx - region.xMin) / 20;
+    var ty = (m.ty - region.yMin) / 20;
+
+    var temp = CanvasCache.getCanvas(w, h);
+    temp.ctx.setTransform(m.a, m.b, m.c, m.d, tx, ty);
+
+    //temp.canvas.style.display = "block";
+    //temp.canvas.style.border = "1px solid red";
+    //document.getElementById("stageContainer").appendChild(temp.canvas);
+
+    var filterInfo = {
+      ctx: this.ctx,
+      temp: temp,
+      region: region,
+      child: child
+    };
+
+    return filterInfo;
+  },
+  filterEnd: function(filterInfo) {
+    //console.log("###### filter out: " + filterInfo.child._name);
+
+    var ctx = filterInfo.ctx;
+    var temp = filterInfo.temp;
+
+    var w = temp.canvas.width;
+    var h = temp.canvas.height;
+    var img = temp.ctx.getImageData(0, 0, w, h);
+    var imgData = img.data;
+
+    var pimg = Module._malloc(imgData.length);
+    Module.HEAPU8.set(imgData, pimg);
+
+    var isPremult = false;
+    var filters = filterInfo.child._filters;
+    for (var i = 0, n = filters.length; i < n; i++) {
+      isPremult = filters[i]._applyFilterMulti(pimg, w, h, isPremult);
+    }
+
+    if (isPremult) {
+      FILTERS.unpreMultiplyAlpha(pimg, w, h);
+    }
+
+    imgData.set(Module.HEAPU8.subarray(pimg, pimg + imgData.length));
+    Module._free(pimg);
+    temp.ctx.putImageData(img, 0, 0);
+
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, filterInfo.region.xMin / 20, filterInfo.region.yMin / 20);
+    ctx.drawImage(temp.canvas, 0, 0);
+    ctx.restore();
+
+    CanvasCache.releaseCanvas(temp);
   }
 };
 

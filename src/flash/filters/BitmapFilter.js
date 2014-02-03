@@ -84,6 +84,9 @@ var BitmapFilterDefinition = (function () {
       }
     },
     _applyFilter: function () {
+    },
+    _applyFilterMulti: function (pimg, width, height, isPremult) {
+      return isPremult;
     }
   };
 

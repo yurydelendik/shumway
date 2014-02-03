@@ -41,6 +41,17 @@ var BlurFilterDefinition = (function () {
       imageData.set(Module.HEAPU8.subarray(pimg, pimg + imageData.length));
       Module._free(pimg);
     },
+    _applyFilterMulti: function (pimg, width, height, isPremult) {
+      if (!isPremult) {
+        FILTERS.preMultiplyAlpha(pimg, width, height);
+      }
+      FILTERS.blur(pimg,
+                   width, height,
+                   Math.round((this._blurX - 1) / 2),
+                   Math.round((this._blurY - 1) / 2),
+                   this._quality, 0);
+      return true;
+    },
     __glue__: {
       native: {
         instance: {
