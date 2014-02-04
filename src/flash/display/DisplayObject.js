@@ -190,6 +190,7 @@ var DisplayObjectDefinition = (function () {
     },
 
     _initializeFilters: function (filters) {
+
       function getRGB(color) {
         return (color.red << 16) | (color.green << 8) | color.blue;
       }
@@ -217,6 +218,8 @@ var DisplayObjectDefinition = (function () {
           return filterObject.inner === 1 ? "inner" : "outer";
         }
       }
+
+      this._filters = [];
       for (var i = 0, n = filters.length; i < n; i++) {
         var fo = filters[i];
         var filter;
