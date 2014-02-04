@@ -232,7 +232,7 @@ var DisplayObjectDefinition = (function () {
                                                         fo.passes,
                                                         !!fo.innerShadow,
                                                         !!fo.knockout,
-                                                        !fo.componsiteSource);
+                                                        !fo.compositeSource);
             break;
           case 1:
             filter = new flash.filters.BlurFilter(fo.blurX,
