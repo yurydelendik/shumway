@@ -31,12 +31,7 @@ var BlurFilterDefinition = (function () {
     _applyFilter: function (imageData, width, height) {
       var pimg = Module._malloc(imageData.length);
       Module.HEAPU8.set(imageData, pimg);
-      FILTERS.preMultiplyAlpha(pimg, width, height);
-      FILTERS.blur(pimg,
-                   width, height,
-                   Math.round((this._blurX - 1) / 2),
-                   Math.round((this._blurY - 1) / 2),
-                   this._quality, 0);
+      this._applyFilterMulti(pimg, width, height, false);
       FILTERS.unpreMultiplyAlpha(pimg, width, height);
       imageData.set(Module.HEAPU8.subarray(pimg, pimg + imageData.length));
       Module._free(pimg);

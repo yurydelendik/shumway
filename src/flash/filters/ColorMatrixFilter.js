@@ -28,6 +28,23 @@ var ColorMatrixFilterDefinition = (function () {
         0, 0, 0, 1, 0
       ];
     },
+    _applyFilter: function (imageData, width, height) {
+      var pimg = Module._malloc(imageData.length);
+      Module.HEAPU8.set(imageData, pimg);
+      this._applyFilterMulti(pimg, width, height, false);
+      imageData.set(Module.HEAPU8.subarray(pimg, pimg + imageData.length));
+      Module._free(pimg);
+    },
+    _applyFilterMulti: function (pimg, width, height, isPremult) {
+      if (isPremult) {
+        FILTERS.unpreMultiplyAlpha(pimg, width, height);
+      }
+      var pm = Module._malloc(20 << 2);
+      Module.HEAPF32.set(new Float32Array(this._matrix), pm >> 2);
+      FILTERS.colormatrix(pimg, width, height, pm);
+      Module._free(pm);
+      return false;
+    },
     __glue__: {
       native: {
         instance: {

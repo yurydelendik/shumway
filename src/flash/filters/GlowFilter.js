@@ -28,6 +28,33 @@ var GlowFilterDefinition = (function () {
       this._updateBlurBounds(bounds);
       return bounds;
     },
+    _applyFilter: function (imageData, width, height) {
+      var pimg = Module._malloc(imageData.length);
+      Module.HEAPU8.set(imageData, pimg);
+      this._applyFilterMulti(pimg, width, height, false);
+      FILTERS.unpreMultiplyAlpha(pimg, width, height);
+      imageData.set(Module.HEAPU8.subarray(pimg, pimg + imageData.length));
+      Module._free(pimg);
+    },
+    _applyFilterMulti: function (pimg, width, height, isPremult) {
+      if (!isPremult) {
+        FILTERS.preMultiplyAlpha(pimg, width, height);
+      }
+      var flags = 0;
+      if (this._inner) { flags |= 0x01; }
+      if (this._knockout) { flags |= 0x02; }
+      if (this._hideObject) { flags |= 0x04; }
+      FILTERS.dropshadow(pimg,
+                         width, height,
+                         0, 0,
+                         this._color, this._alpha,
+                         Math.round((this._blurX - 1) / 2),
+                         Math.round((this._blurY - 1) / 2),
+                         this._strength,
+                         this._quality,
+                         flags);
+      return true;
+    },
     __glue__: {
       native: {
         static: {

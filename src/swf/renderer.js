@@ -408,7 +408,7 @@ RenderVisitor.prototype = {
     var h = (region.yMax - region.yMin) / 20;
     //console.log("### region:", region.xMin/20, region.xMax/20, region.yMin/20, region.yMax/20);
 
-    var bounds = child.getBounds(child._parent);
+    //var bounds = child.getBounds(child._parent);
     //console.log("### bounds:", bounds.xMin/20, bounds.xMax/20, bounds.yMin/20, bounds.yMax/20);
     //console.log("### currentTransform:", child._currentTransform);
     //console.log("### concatTransform:", child._parent._getConcatenatedTransform(null, true))
