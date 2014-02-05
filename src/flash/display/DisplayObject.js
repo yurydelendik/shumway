@@ -1087,6 +1087,7 @@ var DisplayObjectDefinition = (function () {
       }
 
       b = { xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax };
+      b = this._getTransformedRect(b, targetCoordSpace);
 
       var filters = this._filters;
       if (filters && filters.length) {
@@ -1095,7 +1096,7 @@ var DisplayObjectDefinition = (function () {
         }
       }
 
-      return this._getTransformedRect(b, targetCoordSpace);
+      return b;
     },
 
     getBounds: function (targetCoordSpace) {
