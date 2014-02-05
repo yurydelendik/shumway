@@ -245,7 +245,9 @@ RenderVisitor.prototype = {
 
     if (child._filters.length > 0) {
       filterInfo = this.filterStart(child);
-      ctx = this.ctx = filterInfo.temp.ctx;
+      if (filterInfo) {
+        ctx = this.ctx = filterInfo.temp.ctx;
+      }
     }
 
     if (child._cxform) {
@@ -406,6 +408,9 @@ RenderVisitor.prototype = {
     var region = child._getFilterRegion(child._parent);
     var w = (region.xMax - region.xMin) / 20;
     var h = (region.yMax - region.yMin) / 20;
+    if (w === 0 || h === 0) {
+      return null;
+    }
     //console.log("### region:", region.xMin/20, region.xMax/20, region.yMin/20, region.yMax/20);
 
     //var bounds = child.getBounds(child._parent);
