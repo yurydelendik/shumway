@@ -27,7 +27,7 @@ var DropShadowFilterDefinition = (function () {
       var bounds = { xMin: 0, yMin: 0, xMax: 0, yMax: 0 };
       this._updateBlurBounds(bounds);
       if (this._distance !== 0) {
-        var a = this._angle * Math.PI / 180;
+        var a = (this._inner ? this._angle + 180 : this._angle) * Math.PI / 180;
         var dx = Math.cos(a) * this._distance;
         var dy = Math.sin(a) * this._distance;
         bounds.xMin -= (dx >= 0 ? 0 : Math.floor(dx));
