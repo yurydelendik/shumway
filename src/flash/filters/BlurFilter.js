@@ -42,8 +42,8 @@ var BlurFilterDefinition = (function () {
       }
       FILTERS.blur(pimg,
                    width, height,
-                   Math.round((this._blurX - 1) / 2),
-                   Math.round((this._blurY - 1) / 2),
+                   Math.round(Math.ceil(this._blurX - 1) / 2),
+                   Math.round(Math.ceil(this._blurY - 1) / 2),
                    this._quality, 0);
       return true;
     },

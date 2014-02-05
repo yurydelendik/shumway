@@ -60,8 +60,8 @@ var DropShadowFilterDefinition = (function () {
                          width, height,
                          dx, dy,
                          this._color, this._alpha,
-                         Math.round((this._blurX - 1) / 2),
-                         Math.round((this._blurY - 1) / 2),
+                         Math.round(Math.ceil(this._blurX - 1) / 2),
+                         Math.round(Math.ceil(this._blurY - 1) / 2),
                          this._strength,
                          this._quality,
                          flags);
