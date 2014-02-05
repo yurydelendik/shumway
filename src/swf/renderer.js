@@ -416,10 +416,10 @@ RenderVisitor.prototype = {
     //var bounds = child.getBounds(child._parent);
     //console.log("### bounds:", bounds.xMin/20, bounds.xMax/20, bounds.yMin/20, bounds.yMax/20);
     //console.log("### currentTransform:", child._currentTransform);
-    //console.log("### concatTransform:", child._parent._getConcatenatedTransform(null, true))
+    //console.log("### m:", child._parent._getConcatenatedTransform(child._parent, true))
     //console.log("### w/h:", w, h);
 
-    var m = child._parent._getConcatenatedTransform(null, true);
+    var m = child._parent._getConcatenatedTransform(child._parent, true);
     var tx = (m.tx - region.xMin) / 20;
     var ty = (m.ty - region.yMin) / 20;
 
@@ -467,9 +467,10 @@ RenderVisitor.prototype = {
     Module._free(pimg);
     temp.ctx.putImageData(img, 0, 0);
 
+    var tx = (filterInfo.region.xMin) / 20;
+    var ty = (filterInfo.region.yMin) / 20;
     ctx.save();
-    ctx.setTransform(1, 0, 0, 1, filterInfo.region.xMin / 20, filterInfo.region.yMin / 20);
-    ctx.drawImage(temp.canvas, 0, 0);
+    ctx.drawImage(temp.canvas, tx, ty);
     ctx.restore();
 
     CanvasCache.releaseCanvas(temp);
