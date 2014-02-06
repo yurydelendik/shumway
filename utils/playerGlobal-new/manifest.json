@@ -3475,6 +3475,32 @@
     ]
   },
   {
+    "name": "flash/net/FlashNetScript",
+    "defs": [
+      "flash.net:navigateToURL",
+      "flash.net:sendToURL"
+    ],
+    "files": [
+      "flash/net/FlashNetScript.as"
+    ]
+  },
+  {
+    "name": "flash/utils/FlashUtilScript",
+    "defs": [
+      "flash.utils:describeType",
+      "flash.utils:getAliasName",
+      "flash.utils:getQualifiedClassName",
+      "flash.utils:getDefinitionByName",
+      "flash.utils:getQualifiedSuperclassName",
+      "flash.utils:getTimer",
+      "flash.utils:escapeMultiByte",
+      "flash.utils:unescapeMultiByte"
+    ],
+    "files": [
+      "flash/utils/FlashUtilScript.as"
+    ]
+  },
+  {
     "name": "flash/utils/Timer",
     "defs": [
       "flash.utils:Timer"
