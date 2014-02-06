@@ -2009,7 +2009,8 @@
   {
     "name": "flash/system/FSCommand",
     "defs": [
-      "flash.system:FSCommand"
+      "flash.system:FSCommand",
+      "flash.system:fscommand"
     ],
     "files": [
       "flash/system/FSCommand.as"
@@ -3471,6 +3472,28 @@
     ],
     "files": [
       "flash/text/ime/IIMEClient.as"
+    ]
+  },
+  {
+    "name": "flash/utils/Timer",
+    "defs": [
+      "flash.utils:Timer"
+    ],
+    "files": [
+      "flash/utils/Timer.as"
+    ]
+  },
+  {
+    "name": "flash/utils/SetIntervalTimer",
+    "defs": [
+      "flash.utils:SetIntervalTimer",
+      "flash.utils:setInterval",
+      "flash.utils:setTimeout",
+      "flash.utils:clearInterval",
+      "flash.utils:clearTimeout"
+    ],
+    "files": [
+      "flash/utils/SetIntervalTimer.as"
     ]
   }
 ]
