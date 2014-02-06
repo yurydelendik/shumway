@@ -1,0 +1,7 @@
+stage/*.js
+stage/gl/*.js
+stage/assets/*
+classes~/*
+!stage/scene.js
+!stage/tween.js
+stage_/*
