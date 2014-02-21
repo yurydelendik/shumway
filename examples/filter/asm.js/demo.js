@@ -95,7 +95,7 @@ var Demo = (function() {
     var pcm = FILTERS.allocMemory(20 << 2);
     Module.HEAPF32.set(cm, pcm >> 2);
     FILTERS.colormatrix(pimg, w, h, pcm);
-    FILTERS.freeMemory(20 << 2);
+    FILTERS.freeMemory(pcm);
   }
 
   demo.prototype = {
@@ -141,7 +141,7 @@ var Demo = (function() {
         }
 
         imgData.set(Module.HEAPU8.subarray(pimg, pimg + imgData.length));
-        FILTERS.freeMemory(imgData.length);
+        FILTERS.freeMemory(pimg);
       }
 
       this.ctxShapeTmp.putImageData(img, 0, 0);

@@ -6,7 +6,7 @@
 #define MAX_HEAP_SIZE 10000000
 
 unsigned char *allocMemory(unsigned int size);
-void freeMemory(unsigned int size);
+void freeMemory(unsigned char *to);
 void clearMemory(unsigned char *mem, unsigned char val, unsigned int size);
 void copyMemory(unsigned char *dst, unsigned char *src, unsigned int size);
 

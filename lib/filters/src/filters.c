@@ -8,8 +8,8 @@ unsigned char *allocMemory(unsigned int size) {
   current_free_memory += size;
   return tmp;
 }
-void freeMemory(unsigned int size) {
-  current_free_memory -= size;
+void freeMemory(unsigned char *to) {
+  current_free_memory = to;
 }
 void clearMemory(unsigned char *mem, unsigned char val, unsigned int size) {
   while (size > 0) {
@@ -113,7 +113,7 @@ void blurX(unsigned char *img, int width, int height, int distance, unsigned int
 		src += lineOutSize;
 	}
 
-	freeMemory(lineInSize);
+	freeMemory(lineBufferIn);
 }
 
 void blurY(unsigned char *img, int width, int height, int distance, unsigned int borderColor)
@@ -165,7 +165,7 @@ void blurY(unsigned char *img, int width, int height, int distance, unsigned int
 		src += 4;
 	}
 
-	freeMemory(lineOutSize + lineInSize);
+	freeMemory(lineBufferIn);
 }
 
 void boxBlur(unsigned int *lineBufferOut, unsigned char *lineBufferIn, int width, int windowLength)
@@ -246,7 +246,7 @@ void blurXAlpha(unsigned char *img, int width, int height, int distance, unsigne
 		src += width;
 	}
 
-	freeMemory(rw + dist2);
+	freeMemory(lineBufferIn);
 }
 
 void blurYAlpha(unsigned char *img, int width, int height, int distance, unsigned char borderAlpha, int rx, int ry, int rw, int rh)
@@ -292,7 +292,7 @@ void blurYAlpha(unsigned char *img, int width, int height, int distance, unsigne
 		src++;
 	}
 
-	freeMemory(rh + rh + dist2);
+	freeMemory(lineBufferIn);
 }
 
 void boxBlurAlpha(unsigned char *lineBufferOut, unsigned char *lineBufferIn, int width, int windowLength)
@@ -420,7 +420,7 @@ void dropshadow(unsigned char *img, int width, int height, int dx, int dy, unsig
 		}
 	}
 
-	freeMemory(size4);
+	freeMemory(tmp);
 }
 
 void compositeSourceOver(unsigned char *dst, unsigned char *src, int width, int height)
