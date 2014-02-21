@@ -92,10 +92,10 @@ var Demo = (function() {
         cmParams.b0, cmParams.b1, cmParams.b2, cmParams.b3, cmParams.b4,
         cmParams.a0, cmParams.a1, cmParams.a2, cmParams.a3, cmParams.a4
       ]);
-    var pcm = Module._malloc(20 << 2);
+    var pcm = FILTERS.allowMemory(20 << 2);
     Module.HEAPF32.set(cm, pcm >> 2);
     FILTERS.colormatrix(pimg, w, h, pcm);
-    Module._free(pcm);
+    FILTERS.freeMemory(20 << 2);
   }
 
   demo.prototype = {
@@ -121,7 +121,7 @@ var Demo = (function() {
       var imgData = img.data;
 
       if (this.hasActiveFilters()) {
-        var pimg = Module._malloc(imgData.length);
+        var pimg = FILTERS.allowMemory(imgData.length);
         Module.HEAPU8.set(imgData, pimg);
 
         FILTERS.preMultiplyAlpha(pimg, w, h);
@@ -141,7 +141,7 @@ var Demo = (function() {
         }
 
         imgData.set(Module.HEAPU8.subarray(pimg, pimg + imgData.length));
-        Module._free(pimg);
+        FILTERS.freeMemory(imgData.length);
       }
 
       this.ctxShapeTmp.putImageData(img, 0, 0);
