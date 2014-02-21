@@ -92,7 +92,7 @@ var Demo = (function() {
         cmParams.b0, cmParams.b1, cmParams.b2, cmParams.b3, cmParams.b4,
         cmParams.a0, cmParams.a1, cmParams.a2, cmParams.a3, cmParams.a4
       ]);
-    var pcm = FILTERS.allowMemory(20 << 2);
+    var pcm = FILTERS.allocMemory(20 << 2);
     Module.HEAPF32.set(cm, pcm >> 2);
     FILTERS.colormatrix(pimg, w, h, pcm);
     FILTERS.freeMemory(20 << 2);
@@ -121,7 +121,7 @@ var Demo = (function() {
       var imgData = img.data;
 
       if (this.hasActiveFilters()) {
-        var pimg = FILTERS.allowMemory(imgData.length);
+        var pimg = FILTERS.allocMemory(imgData.length);
         Module.HEAPU8.set(imgData, pimg);
 
         FILTERS.preMultiplyAlpha(pimg, w, h);

@@ -3,3 +3,4 @@ cat src/filters.pre.js > filters.js
 cat filters.raw.js >> filters.js
 cat src/filters.post.js >> filters.js
 rm filters.raw.js
+node ./cut.js > filters3.js
