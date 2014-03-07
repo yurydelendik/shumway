@@ -35,7 +35,7 @@
 
 function createFlexibleType(id) {
   var factory = function() {
-    return { $: id, args: slice.call(arguments) };
+    return { $: id, args: Array.prototype.slice.call(arguments) };
   };
   factory.valueOf = function() {
     return id;

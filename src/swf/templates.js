@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*global pow, slice, fromCharCode */
 
 function readSi8($bytes, $stream) {
   return $stream.getInt8($stream.pos++);
@@ -48,10 +47,10 @@ function readFloat16($bytes, $stream) {
   var exponent = (ui16 & 0x7c00) >> 10;
   var fraction = ui16 & 0x03ff;
   if (!exponent)
-    return sign * pow(2, -14) * (fraction / 1024);
+    return sign / 16384 * (fraction / 1024);
   if (exponent === 0x1f)
     return fraction ? NaN : sign * Infinity;
-  return sign * pow(2, exponent - 15) * (1 + (fraction / 1024));
+  return sign * Math.pow(2, exponent - 15) * (1 + (fraction / 1024));
 }
 function readFloat($bytes, $stream) {
   return $stream.getFloat32($stream.pos, $stream.pos += 4);
@@ -106,7 +105,7 @@ function readString($bytes, $stream, length) {
   var codes = [];
   var pos = $stream.pos;
   if (length) {
-    codes = slice.call($bytes, pos, pos += length);
+    codes = Array.prototype.slice.call($bytes, pos, pos += length);
   } else {
     length = 0;
     for (var code; (code = $bytes[pos++]); length++)
@@ -119,7 +118,7 @@ function readString($bytes, $stream, length) {
     var begin = i * 65536;
     var end = begin + 65536;
     var chunk = codes.slice(begin, end);
-    str += fromCharCode.apply(null, chunk);
+    str += String.fromCharCode.apply(null, chunk);
   }
   return decodeURIComponent(escape(str.replace('\0', '', 'g')));
 }

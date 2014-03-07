@@ -15,10 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*global slice, push, isArray, keys, fail */
 /*global readSi8, readSi16, readSi32, readUi8, readUi16, readUi32, readFixed,
   readFixed8, readFloat16, readFloat, readDouble, readEncodedU32, readBool,
-  align, readSb, readUb, readFb, readString, readBinary */
+  align, readSb, readUb, readFb, readString, readBinary, fail */
 
 var defaultTemplateSet = [
   readSi8, readSi16, readSi32, readUi8, readUi16, readUi32, readFixed,
@@ -45,7 +44,7 @@ function generateParser(_struct) {
     for (var field in _struct) {
       var type = _struct[field], options;
       if (typeof type === 'object' && type.$ !== undefined) {
-        assert(!isArray(type.$), 'invalid type', 'generate');
+        assert(!Array.isArray(type.$), 'invalid type', 'generate');
         options = type;
         type = options.$;
       } else {
@@ -155,12 +154,12 @@ function generateParser(_struct) {
             segment.push(productions.pop());
           };
 
-          if (isArray(type)) {
+          if (Array.isArray(type)) {
             var expr = type[0];
             assert(expr, 'invalid control expression', 'generate');
             var branches = type[1];
             assert(typeof branches === 'object', 'invalid alternatives', 'generate');
-            if (isArray(branches)) {
+            if (Array.isArray(branches)) {
               assert(branches.length <= 2, 'too many alternatives', 'generate');
               segment.push('if(' + expr + '){');
               branch(branches[0]);
@@ -171,7 +170,7 @@ function generateParser(_struct) {
                 segment.push('}');
               }
             } else {
-              var values = keys(branches);
+              var values = Object.keys(branches);
               assert(values && values.length, 'missing case values', 'generate');
               segment.push('switch(' + expr + '){');
               var val;
@@ -198,15 +197,16 @@ function generateParser(_struct) {
           fail('invalid type', 'generate');
         }
       }
-      push.apply(production, segment);
+      Array.prototype.push.apply(production, segment);
     }
     productions.push(production.join('\n'));
     return context;
   })(_struct, '$');
 
   var args = ['$bytes', '$stream', '$'];
-  if (arguments.length > 1)
-    push.apply(args, slice.call(arguments, 1));
+  if (arguments.length > 1) {
+    Array.prototype.push(args, Array.prototype.slice.call(arguments, 1));
+  }
   /*jshint -W067 */
   return (1, eval)(
     '(function(' + args.join(',') + '){\n' +

@@ -15,21 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*global max, min, logE, pow, fromCharCode, keys */
 
 var nextFontId = 1;
 
 function maxPower2(num) {
-  var maxPower = 0;
-  var val = num;
-  while (val >= 2) {
-    val /= 2;
-    ++maxPower;
+  if (!(num & (num - 1))) {
+    return num; // power of 2
   }
-  return pow(2, maxPower);
+  var power = 1;
+  while (num > power) {
+    power *= 2;
+  }
+  return power;
+}
+function floorLog2(num) {
+  var log = 0;
+  while (num >= 2) {
+    log++;
+    num = num >>> 1;
+  }
+  return log;
 }
 function toString16(val) {
-  return fromCharCode((val >> 8) & 0xff, val & 0xff);
+  return String.fromCharCode((val >> 8) & 0xff, val & 0xff);
 }
 function toString32(val) {
   return toString16(val >> 16) + toString16(val);
@@ -144,7 +152,7 @@ function defineFont(tag, dictionary) {
     '\x00\x00' + // language
     toString16(segCount * 2) + // segCountX2
     toString16(searchRange) +
-    toString16(logE(segCount) / logE(2)) + // entrySelector
+    toString16(floorLog2(segCount)) + // entrySelector
     toString16(rangeShift) +
     endCount +
     '\x00\x00' + // reservedPad
@@ -311,10 +319,10 @@ function defineFont(tag, dictionary) {
     '\x04\x00' + // unitsPerEm
     '\x00\x00\x00\x00' + toString32(Date.now()) + // created
     '\x00\x00\x00\x00' + toString32(Date.now()) + // modified
-    toString16(min.apply(null, xMins)) + // xMin
-    toString16(min.apply(null, yMins)) + // yMin
-    toString16(max.apply(null, xMaxs)) + // xMax
-    toString16(max.apply(null, yMaxs)) + // yMax
+    toString16(Math.min.apply(null, xMins)) + // xMin
+    toString16(Math.min.apply(null, yMins)) + // yMin
+    toString16(Math.max.apply(null, xMaxs)) + // xMax
+    toString16(Math.max.apply(null, yMaxs)) + // yMax
     toString16((tag.italic ? 2 : 0) | (tag.bold ? 1 : 0)) + // macStyle
     '\x00\x08' + // lowestRecPPEM
     '\x00\x02' + // fontDirectionHint
@@ -328,7 +336,7 @@ function defineFont(tag, dictionary) {
     toString16(ascent) + // ascender
     toString16(descent) + // descender
     toString16(leading) + // lineGap
-    toString16(advance ? max.apply(null, advance) : 1024) + // advanceWidthMax
+    toString16(advance ? Math.max.apply(null, advance) : 1024) + // advanceWidthMax
     '\x00\x00' + // minLeftSidebearing
     '\x00\x00' + // minRightSidebearing
     '\x03\xb8' + // xMaxExtent
@@ -360,7 +368,7 @@ function defineFont(tag, dictionary) {
       '\x00\x01' + // coverage
       toString16(nPairs) +
       toString16(searchRange) +
-      toString16(logE(nPairs) / logE(2)) + // entrySelector
+      toString16(floorLog2(nPairs)) + // entrySelector
       toString16((2 * nPairs) - searchRange) // rangeShift
     ;
     var i = 0;
@@ -442,7 +450,7 @@ function defineFont(tag, dictionary) {
     '\x00\x00\x00\x00' // maxMemType1
   ;
 
-  var names = keys(tables);
+  var names = Object.keys(tables);
   var numTables = names.length;
   var header =
     '\x00\x01\x00\x00' + // version

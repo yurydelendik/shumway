@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*global fail, push, cloneObject, rgbaObjToStr */
+/*global fail, cloneObject, rgbaObjToStr */
 
 var GRAPHICS_FILL_CLIPPED_BITMAP               = 65;
 var GRAPHICS_FILL_FOCAL_RADIAL_GRADIENT        = 19;
@@ -120,6 +120,8 @@ function applySegmentToStyles(segment, styles, linePaths, fillPaths, isMorph)
 function convertRecordsToStyledPaths(records, fillPaths, linePaths, dictionary,
                                      dependencies, recordsMorph, transferables)
 {
+  var push = Array.prototype.push;
+
   var isMorph = recordsMorph !== null;
   var styles = {fill0: 0, fill1: 0, line: 0};
   var segment = null;

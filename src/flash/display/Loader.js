@@ -19,8 +19,7 @@
          Promise, AVM2, AbcFile, SHUMWAY_ROOT, TelemetryService,
          avm1lib, AS2Context, executeActions,
          MP3DecoderSession, PLAY_USING_AUDIO_TAG,
-         cloneObject, createEmptyObject, fromCharCode,
-         isNullOrUndefined, sortNumeric */
+         cloneObject, createEmptyObject, isNullOrUndefined, sortNumeric */
 // Ignoring "The Function constructor is a form of eval."
 /*jshint -W054 */
 // TODO: Investigate "Don't make functions within a loop."
@@ -564,7 +563,7 @@ var LoaderDefinition = (function () {
         props.buttonActions = symbol.buttonActions;
         break;
       case 'font':
-        var charset = fromCharCode.apply(null, symbol.codes);
+        var charset = String.fromCharCode.apply(null, symbol.codes);
         if (charset) {
           style.insertRule(
             '@font-face{' +

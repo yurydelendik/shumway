@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*global rgbaObjToStr, fromCharCode */
+/*global rgbaObjToStr */
 
 function defineLabel(tag, dictionary) {
   var records = tag.records;
@@ -60,7 +60,8 @@ function defineLabel(tag, dictionary) {
     while ((entry = entries[j++])) {
       var code = codes[entry.glyphIndex];
       assert(code, 'undefined glyph', 'label');
-      var text = code >= 32 && code != 34 && code != 92 ? fromCharCode(code) :
+      var text = code >= 32 && code != 34 && code != 92 ?
+        String.fromCharCode(code) :
         '\\u' + (code + 0x10000).toString(16).substring(1);
       cmds.push('c.fillText("' + text + '",' + x + ',' + y + ')');
       x += entry.advance;

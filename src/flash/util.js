@@ -17,19 +17,6 @@
  */
 /*global formatErrorMessage, throwErrorFromVM, AVM2, $RELEASE, self */
 
-var create = Object.create;
-var defineProperty = Object.defineProperty;
-var keys = Object.keys;
-var isArray = Array.isArray;
-var fromCharCode = String.fromCharCode;
-var logE = Math.log;
-var max = Math.max;
-var min = Math.min;
-var pow = Math.pow;
-var push = Array.prototype.push;
-var slice = Array.prototype.slice;
-var splice = Array.prototype.splice;
-
 function fail(msg, context) {
   throw new Error((context ? context + ': ' : '') + msg);
 }
@@ -685,6 +672,9 @@ RegionCluster.prototype.reset = function () {
   this.regions.length = 0;
 };
 RegionCluster.prototype.insert = function (region) {
+  var max = Math.max;
+  var min = Math.min;
+
   var regions = this.regions;
 
   if (regions.length < 3) {
