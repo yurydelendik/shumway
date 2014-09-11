@@ -17,6 +17,7 @@
 ///<reference path='references.ts' />
 module Shumway.AVM2.AS.avm1lib {
   import notImplemented = Shumway.Debug.notImplemented;
+  import assert = Shumway.Debug.assert;
   import asCoerceString = Shumway.AVM2.Runtime.asCoerceString;
   import construct = Shumway.AVM2.Runtime.construct;
   import AVM1Context = Shumway.AVM1.AVM1Context;
@@ -53,13 +54,24 @@ module Shumway.AVM2.AS.avm1lib {
 
     // __as3Object: flash.display.MovieClip;
     _init(nativeMovieClip: flash.display.MovieClip): any {
-      if (!nativeMovieClip) {
-        return; // delaying initialization, see also _constructSymbol
+      if (this._nativeAS3Object) {
+        return; // Movie clip was initialized
       }
+      release || assert(nativeMovieClip);
       this._nativeAS3Object = nativeMovieClip;
       (<any> nativeMovieClip)._as2Object = this;
       initDefaultListeners(this);
     }
+
+    static _initFromConstructor(ctor, nativeMovieClip: flash.display.MovieClip): flash.display.MovieClip {
+      var mc = Object.create(ctor.asGetPublicProperty('prototype'));
+      mc._nativeAS3Object = nativeMovieClip;
+      (<any>nativeMovieClip)._as2Object = mc;
+      initDefaultListeners(mc);
+      ctor.call(mc);
+      return mc;
+    }
+
     get _as3Object(): flash.display.MovieClip {
       return this._nativeAS3Object;
     }
@@ -75,10 +87,12 @@ module Shumway.AVM2.AS.avm1lib {
     _constructMovieClipSymbol(symbolId: string, name: string): flash.display.MovieClip {
       var symbol = AVM1Context.instance.getAsset(symbolId);
 
-      var mc: flash.display.MovieClip = flash.display.MovieClip.initializeFrom(symbol.symbolProps);
+      var props: Timeline.SpriteSymbol = Object.create(symbol.symbolProps);
+      props.avm1Name = name;
+      props.avm1SymbolClass = symbol.theClass;
+
+      var mc: flash.display.MovieClip = flash.display.MovieClip.initializeFrom(props);
       flash.display.MovieClip.instanceConstructorNoInitialize.call(mc);
-      mc._as2SymbolClass = symbol.theClass;
-      mc._name = name;
 
       return mc;
     }
