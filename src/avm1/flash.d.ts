@@ -207,16 +207,12 @@ declare module Shumway.AVM2.AS.flash {
     class Sound extends ASNative {}
   }
   module net {
-    function navigateToURL(request, target);
     class URLRequest extends ASNative {
       constructor(url: string);
       method: string;
     }
-    class URLLoaderDataFormat {
-      static VARIABLES;
-    }
     class URLLoader extends events.EventDispatcher {
-      dataFormat: URLLoaderDataFormat;
+      dataFormat;
       data: any;
       constructor(request?: URLRequest);
     }
@@ -283,6 +279,11 @@ declare module Shumway.AVM2.AS.flash {
       static _clearInterval: (id: number /*uint*/) => void;
     }
   }
+}
+
+declare module Shumway.AVM2.AS {
+  function FlashUtilScript_getTimer();
+  function FlashNetScript_navigateToURL(request, window_);
 }
 
 declare module Shumway.Timeline {
