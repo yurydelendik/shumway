@@ -639,12 +639,18 @@ module Shumway.AVMX.AS.flash.net {
         Debug.warning('MediaSource API is not enabled, falling back to regular playback');
         isMediaSourceEnabled = false;
       }
+      var flvMode: string = flvOption.value;
       var forceMediaSource = false;
-      if (/\.flv($|\?)/i.test(url)) {
-        if (flvOption.value === 'supported') {
+      var useVP6Player = false;
+      if (flvMode === 'alwaysflash') {
+        useVP6Player = true;
+      } else if (/\.flv($|\?)/i.test(url)) {
+        if (flvMode === 'supported') {
           forceMediaSource = true;
-        } else if (flvOption.value === 'mock') {
+        } else if (flvMode === 'mock') {
           url = 'resource://shumway/web/noflv.mp4';
+        } else if (flvMode === 'flash') {
+          useVP6Player = true;
         } else {
           setTimeout(() => {
             this._netStream.dispatchEvent(new this.sec.flash.events.NetStatusEvent(events.NetStatusEvent.NET_STATUS,
@@ -653,10 +659,14 @@ module Shumway.AVMX.AS.flash.net {
           return;
         }
       }
+
       if (!forceMediaSource && !isMediaSourceEnabled) {
         somewhatImplemented("public flash.net.NetStream::play");
         this._state = VideoStreamState.OPENED;
         this._url = FileLoadingService.instance.resolveUrl(url);
+        if (useVP6Player) {
+          this._url = 'vp6:' + this._url;
+        }
         return;
       }
 
