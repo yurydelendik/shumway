@@ -416,6 +416,9 @@ module Shumway.GFX {
     }
 
     public checkForUpdate() {
+      if (!this._video) {
+        return;
+      }
       if (this._lastTimeInvalidated !== this._video.currentTime) {
         // Videos composited using DOM elements don't need to invalidate parents.
         if (!this._isDOMElement) {
@@ -433,11 +436,13 @@ module Shumway.GFX {
         if (renderable.willRender()) {
           // If the nodes video element isn't already on the video layer, mark the node as invalid to
           // make sure the video element will be added the next time the renderer reaches it.
-          if (!renderable._video.parentElement ||
+          if (!renderable._video || !renderable._video.parentElement ||
               renderable._video.parentElement === VP6Player.hiddenLayer) {
             renderable.invalidate();
           }
-          renderable._video.style.zIndex = renderable.parents[0].depth + '';
+          if (renderable._video) {
+            renderable._video.style.zIndex = renderable.parents[0].depth + '';
+          }
         } else if (renderable._video.parentElement) {
           // The nodes video element should be removed if no longer visible.
           renderable._dispatchEvent(NodeEventType.RemovedFromStage);

@@ -162,10 +162,6 @@ module Shumway.AVMX.AS.flash.net {
       notImplemented("public flash.net.NetStream::dispose"); return;
     }
 
-    _getVideoStreamURL(): string {
-      return this._videoStream.url;
-    }
-
     play(url: string): void {
       flash.media.SoundMixer._registerSoundSource(this);
 
@@ -183,8 +179,13 @@ module Shumway.AVMX.AS.flash.net {
         this._videoStream.play(url, this.checkPolicyFile);
       }
 
-      this._notifyVideoControl(VideoControlEvent.Init, {
-        url: this._videoStream.url
+      this._videoStream.urlPromise.then((url: string) => {
+        this._notifyVideoControl(VideoControlEvent.Init, {
+          url: url
+        });
+      }, (reason: any) => {
+        this.dispatchEvent(new this.sec.flash.events.NetStatusEvent(events.NetStatusEvent.NET_STATUS,
+          false, false, this.sec.createObjectFromJS({code: "NetStream.Play.NoSupportedTrackFound", level: "error"})));
       });
     }
     play2(param: flash.net.NetStreamPlayOptions): void {
@@ -588,11 +589,10 @@ module Shumway.AVMX.AS.flash.net {
     private _started: boolean;
     private _buffer: string;
     private _bufferTime: number;
-    private _url: string;
+    private _urlPromise: PromiseWrapper<string>;
     private _contentTypeHint: string;
     private _state: VideoStreamState;
     private _mediaSource;
-    private _mediaSourceBuffer;
     private _mediaSourceBufferLock: Promise<any>;
     private _head: Uint8Array;
     private _decoder: IDataDecoder;
@@ -617,9 +617,8 @@ module Shumway.AVMX.AS.flash.net {
       this._started = false;
       this._buffer = 'empty';
       this._bufferTime = 0.1;
-      this._url = null;
+      this._urlPromise = new PromiseWrapper<string>();
       this._mediaSource = null;
-      this._mediaSourceBuffer = null;
       this._mediaSourceBufferLock = null;
       this._contentTypeHint = null;
       this._state = VideoStreamState.CLOSED;
@@ -627,8 +626,8 @@ module Shumway.AVMX.AS.flash.net {
       this._netStream = netStream;
     }
 
-    get url(): string {
-      return this._url;
+    get urlPromise(): Promise<string> {
+      return this._urlPromise.promise;
     }
 
     play(url: string, checkPolicyFile: boolean) {
@@ -652,10 +651,7 @@ module Shumway.AVMX.AS.flash.net {
         } else if (flvMode === 'flash') {
           useVP6Player = true;
         } else {
-          setTimeout(() => {
-            this._netStream.dispatchEvent(new this.sec.flash.events.NetStatusEvent(events.NetStatusEvent.NET_STATUS,
-              false, false, this.sec.createObjectFromJS({code: "NetStream.Play.NoSupportedTrackFound", level: "error"})));
-          });
+          this._urlPromise.reject('Not supported');
           return;
         }
       }
@@ -663,10 +659,11 @@ module Shumway.AVMX.AS.flash.net {
       if (!forceMediaSource && !isMediaSourceEnabled) {
         somewhatImplemented("public flash.net.NetStream::play");
         this._state = VideoStreamState.OPENED;
-        this._url = FileLoadingService.instance.resolveUrl(url);
+        url = FileLoadingService.instance.resolveUrl(url);
         if (useVP6Player) {
-          this._url = 'vp6:' + this._url;
+          url = 'vp6:' + url;
         }
+        this._urlPromise.resolve(url);
         return;
       }
 
@@ -751,21 +748,29 @@ module Shumway.AVMX.AS.flash.net {
     openInDataGenerationMode() {
       release || assert(this._state === VideoStreamState.CLOSED);
       this._state = VideoStreamState.OPENED_DATA_GENERATION;
+    }
+
+    private _createMediaSource(contentType: string): Promise<any> {
+      var mediaSourceReady = new PromiseWrapper<any>();
       var mediaSource = new MediaSource();
       mediaSource.addEventListener('sourceopen', function(e) {
         this._ensurePlaying();
+        var mediaSourceBuffer = this._mediaSource.addSourceBuffer(contentType);
+        mediaSourceReady.resolve(mediaSourceBuffer);
       }.bind(this));
       mediaSource.addEventListener('sourceend', function(e) {
         this._mediaSource = null;
       }.bind(this));
       this._mediaSource = mediaSource;
-      this._url = URL.createObjectURL(mediaSource);
+      this._mediaSourceBufferLock = mediaSourceReady.promise;
+      var url = URL.createObjectURL(mediaSource);
+      this._urlPromise.resolve(url);
+      return mediaSourceReady.promise;
     }
 
     appendBytes(bytes: Uint8Array) {
       release || assert(this._state === VideoStreamState.OPENED_DATA_GENERATION ||
                         this._state === VideoStreamState.OPENED);
-      release || assert(this._mediaSource);
 
       if (this._decoder) {
         this._decoder.push(bytes);
@@ -793,21 +798,19 @@ module Shumway.AVMX.AS.flash.net {
           // FLV data needs to be parsed and wrapped with MP4 tags.
           var flvDecoder = new FlvMp4Decoder(this.sec);
           flvDecoder.onHeader = function (contentType) {
-            this._mediaSourceBuffer = this._mediaSource.addSourceBuffer(contentType);
-            this._mediaSourceBufferLock = Promise.resolve(undefined);
+            this._createMediaSource(contentType);
           }.bind(this);
           flvDecoder.onData = this._queueData.bind(this);
           this._decoder = flvDecoder;
         } else if (contentType) {
-          // Let's use identity decoder for reset of the types.
+          // Let's use identity decoder for rest of the types.
           this._decoder = {
             onData: this._queueData.bind(this),
             onError: function (e) { /* */ },
             push: function (bytes: Uint8Array) { this.onData(bytes); },
             close: function () { /* */ }
           };
-          this._mediaSourceBuffer = this._mediaSource.addSourceBuffer(contentType);
-          this._mediaSourceBufferLock = Promise.resolve(undefined);
+          this._createMediaSource(contentType);
         }
       }
 
@@ -829,13 +832,12 @@ module Shumway.AVMX.AS.flash.net {
 
     private _queueData(bytes: Uint8Array): void {
       // We need to chain all appendBuffer operations using 'update' event.
-      var buffer = this._mediaSourceBuffer;
-      this._mediaSourceBufferLock = this._mediaSourceBufferLock.then(function () {
+      this._mediaSourceBufferLock = this._mediaSourceBufferLock.then(function (buffer) {
         buffer.appendBuffer(bytes);
         return new Promise(function (resolve) {
           buffer.addEventListener('update', function updateHandler() {
             buffer.removeEventListener('update', updateHandler);
-            resolve();
+            resolve(buffer);
           });
         });
       });
@@ -852,7 +854,7 @@ module Shumway.AVMX.AS.flash.net {
           throw new Error('Internal appendBytes error');
         }
         this._decoder.close();
-        this._mediaSourceBufferLock.then(function () {
+        this._mediaSourceBufferLock.then(function (buffer) {
           if (this._mediaSource) {
             this._mediaSource.endOfStream();
           }
