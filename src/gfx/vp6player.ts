@@ -31,6 +31,22 @@ module Shumway.GFX {
     return hiddenVP6PlayersLayer;
   }
 
+  function packageAndSendVP6Data(obj: HTMLObjectElement, data: Uint8Array): void  {
+    if (data == null) {
+      (<any>obj).addVP6Data(null);
+      return;
+    }
+    var maxSize = 1023; // divisible by 3
+    var pos = 0;
+    while (pos + maxSize < data.length) {
+      var chunk = btoa(String.fromCharCode.apply(null, data.subarray(pos, pos + maxSize)));
+      (<any>obj).addVP6Data(chunk);
+      pos += maxSize;
+    }
+    var chunk = btoa(String.fromCharCode.apply(null, data.subarray(pos)));
+    (<any>obj).addVP6Data(chunk);
+  }
+
   export class VP6Player {
     public static SWFPath: string = 'resource://shumway/vp6player.swf';
 
@@ -41,6 +57,7 @@ module Shumway.GFX {
     private _errorObj: {code: number};
     private _seekableObj: {length: number};
     private _bufferedObj: {length: number; end: (index: number) => number};
+    private _vp6Data: Uint8Array[];
 
     public constructor() {
       var id = generateUniqueID();
@@ -101,7 +118,7 @@ module Shumway.GFX {
       var propertiesToTransfer = ['width', 'height', 'src', 'currentTime',
         'volume', 'error', 'videoWidth', 'videoHeight', 'paused', 'seekable',
         'buffered', 'play', 'pause', '_dispatchEvent', '_pushProperty',
-        '_syncProperties', '_init', '_setSize'];
+        '_syncProperties', '_init', '_setSize', '_addVP6StreamData'];
       propertiesToTransfer.forEach((x) => {
         var desc = Object.getOwnPropertyDescriptor(VP6Player.prototype, x);
         Debug.assert(desc);
@@ -133,6 +150,7 @@ module Shumway.GFX {
     }
 
     public set src(value: string) {
+      this._obj.setAttribute('data-src', 'vp6:' + value);
       this._shadowObj.src = value;
       this._pushProperty('src');
     }
@@ -227,6 +245,12 @@ module Shumway.GFX {
       if (this._shadowObj.volume !== undefined) {
         this._pushProperty('volume');
       }
+      if (this._vp6Data) {
+        this._vp6Data.forEach((data) => {
+          packageAndSendVP6Data(this._obj, data);
+        });
+        this._vp6Data = null;
+      }
       if (this._playing) {
         this._obj.play();
       }
@@ -238,6 +262,17 @@ module Shumway.GFX {
       }
       if (!this._obj.height) {
         this._obj.height = height;
+      }
+    }
+
+    _addVP6StreamData(data: Uint8Array) {
+      if (this._initialized) {
+        packageAndSendVP6Data(this._obj, data);
+      } else {
+        if (!this._vp6Data) {
+          this._vp6Data = [];
+        }
+        this._vp6Data.push(data);
       }
     }
 
@@ -263,6 +298,11 @@ module Shumway.GFX {
 
     public static get hiddenLayer() {
       return getHiddenVP6PlayersLayer();
+    }
+
+    public static addVP6StreamData(url: string, data: Uint8Array) {
+      var target = <any>document.querySelector('object[data-src="' + url + '"]');
+      target._proxy._addVP6StreamData(data);
     }
   }
 }

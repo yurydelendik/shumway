@@ -641,7 +641,7 @@ module Shumway.AVMX.AS.flash.net {
       var flvMode: string = flvOption.value;
       var forceMediaSource = false;
       var useVP6Player = false;
-      if (flvMode === 'alwaysflash') {
+      if (vp6PlayerOption.value) {
         useVP6Player = true;
       } else if (/\.flv($|\?)/i.test(url)) {
         if (flvMode === 'supported') {
@@ -768,11 +768,31 @@ module Shumway.AVMX.AS.flash.net {
       return mediaSourceReady.promise;
     }
 
+    private _createVP6PlayerDecoder(): IDataDecoder  {
+      var url = 'vp6:flvstream:' + generateRandomUUID();
+      this._urlPromise.resolve(url);
+      var player: any = this.sec.player;
+      // Shortcut: using decoder interface to push data to the gfx iframe.
+      // FIXME don't use player._gfxService -- implement interface
+      return {
+        onData: null,
+        onError: null,
+        push: function (bytes: Uint8Array) { player.sendVP6StreamData(url, bytes);  },
+        close: function () { player.sendVP6StreamData(url, null /* EOF */); }
+      };
+    }
+
     appendBytes(bytes: Uint8Array) {
       release || assert(this._state === VideoStreamState.OPENED_DATA_GENERATION ||
                         this._state === VideoStreamState.OPENED);
 
       if (this._decoder) {
+        this._decoder.push(bytes);
+        return;
+      }
+
+      if (vp6PlayerOption.value) {
+        this._decoder = this._createVP6PlayerDecoder();
         this._decoder.push(bytes);
         return;
       }
@@ -854,12 +874,14 @@ module Shumway.AVMX.AS.flash.net {
           throw new Error('Internal appendBytes error');
         }
         this._decoder.close();
-        this._mediaSourceBufferLock.then(function (buffer) {
-          if (this._mediaSource) {
-            this._mediaSource.endOfStream();
-          }
-          this.close();
-        }.bind(this));
+        if (this._mediaSourceBufferLock) {
+          this._mediaSourceBufferLock.then(function (buffer) {
+            if (this._mediaSource) {
+              this._mediaSource.endOfStream();
+            }
+            this.close();
+          }.bind(this));
+        }
       }
       somewhatImplemented("public flash.net.NetStream::appendBytesAction");
     }
