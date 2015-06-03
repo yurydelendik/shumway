@@ -131,6 +131,14 @@ module Shumway.Player.Window {
       }, '*');
     }
 
+    sendVP6PlayerData(url: string, data: Uint8Array): void {
+      this._parent.postMessage({
+        type: 'vp6data',
+        url: url,
+        data: data
+      }, '*');
+    }
+
     private onWindowMessage(data) {
       if (typeof data === 'object' && data !== null) {
         switch (data.type) {
