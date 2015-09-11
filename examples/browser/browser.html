@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SWF browser</title>
+  <script src="../../build/ts/base.js"></script>
+  <script src="../../build/ts/tools.js"></script>
+  <script src="../../build/ts/swf.js"></script>
+  <script src="browser.js"></script>
+  <style>
+    body {
+      font-family: Sans-Serif;
+    }
+    .swfframe {
+      clear: both;
+    }
+    .expandButton {
+      float: left;
+      border: 1px solid black;
+      padding: 0px;
+      width: 14px;
+      height: 14px;
+      background-color: transparent;
+      font-family: monospace;
+      font-size: 11px;
+      line-height: 11px;
+    }
+
+    .swfframechildren,
+    .swfsymbolchildren {
+      margin-left: 20px;
+    }
+  </style>
+</head>
+<body onload="onload()">
+  <div>
+    <label>SWF File: </label>
+    <input type="file" id="swfFile">
+  </div>
+  <div id="content" hidden>
+    <div id="header">
+      <label>Signature: </label><span id="signature"></span>
+      <label>Version: </label><span id="version"></span>
+      <label>Length: </label><span id="length"></span>
+    </div>
+    <h1>SWF Frames</h1>
+    <div id="frames"></div>
+    <h1>SWF Symbols / Dictionary</h1>
+    <div id="dictionary"></div>
+  </div>
+</body>
+</html>
