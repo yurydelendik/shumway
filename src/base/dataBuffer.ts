@@ -161,11 +161,11 @@ module Shumway.ArrayUtilities {
     }
 
     /**
-     * Moves rest of the data starting from current position to the beginning of
-     * the buffer. The length will be reduced by the position, and the position
-     * will be set to 0.
+     * Removes bytes from start to the current position, and moves the rest of the data
+     * to the beginning of the buffer. The length will be reduced by the number of
+     * the removed bytes, and the position will be set to 0.
      */
-    compact(): void {
+    removeHead(): void {
       var position = this._position;
       if (position === 0) {
         return; // nothing to compact

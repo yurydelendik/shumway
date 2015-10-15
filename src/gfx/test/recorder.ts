@@ -367,7 +367,7 @@ module Shumway.GFX.Test {
     }
 
     private _pushTransformed(data: Uint8Array): void {
-      this._buffer.compact();
+      this._buffer.removeHead();
 
       var savedPosition = this._buffer.position;
       this._buffer.position = this._buffer.length;
